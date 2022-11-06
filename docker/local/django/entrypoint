@@ -1,0 +1,23 @@
+#!/bin/bash
+
+set -o errexit
+
+set -o pipefail
+
+set -o nounset
+
+postgres_ready() {
+python << END
+import sys
+import psycopg2
+sys.exit(0)
+END
+}
+
+until postgres_ready; do
+>&2 echo "Waiting"
+sleep 1
+done
+>&2 echo "Ready"
+
+exec "$@"
