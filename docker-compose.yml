@@ -15,7 +15,9 @@ services:
     env_file:
       - .env
     networks:
-      - react
+      vkr_net:
+        ipv4_address: 172.32.54.3
+
   nginx:
     restart: always
     depends_on:
@@ -29,12 +31,46 @@ services:
     ports:
       - "8080:80"
     networks:
-      - "react"
+      vkr_net:
+        ipv4_address: 172.32.54.5
 
+  celery:
+    restart: always
+    build:
+      context: .
+      dockerfile: ./docker/local/django/Dockerfile
+    command: celery -A vkr worker  -l INFO
+    volumes:
+      - .:/app
+    depends_on:
+      - api
+      - redis
+  redis:
+    build:
+      context: .
+      dockerfile: docker/local/redis/Dockerfile
+    restart: on-failure
+    depends_on:
+      - api
+    volumes:
+      - vkr_redis_log:/app/redis/log
+      - vkr_redis_dump:/app/redis/dump
+    ports:
+      - "6379"
+    networks:
+      vkr_net:
+        ipv4_address: 172.32.54.4
 
 networks:
-  react:
-    driver: bridge
+  vkr_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.32.54.0/24"
 volumes:
   static_volume:
   media_volume:
+  vkr_redis_log:
+    external: true
+  vkr_redis_dump:
+    external: true
