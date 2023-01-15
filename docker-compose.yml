@@ -61,6 +61,21 @@ services:
       vkr_net:
         ipv4_address: 172.32.54.4
 
+  # RabbitMQ
+  rabbit:
+    restart: always
+    image: "rabbitmq:3-management"
+    environment:
+      RABBITMQ_DEFAULT_USER: "rabbitmq"
+      RABBITMQ_DEFAULT_PASS: "rabbitmq"
+      RABBITMQ_DEFAULT_VHOST: "/"
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    networks:
+      vkr_net:
+        ipv4_address: 172.32.54.6
+
 networks:
   vkr_net:
     ipam:

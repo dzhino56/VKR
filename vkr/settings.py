@@ -20,13 +20,14 @@ DEBUG = env("DEBUG")
 
 ALLOWED_HOSTS = env("ALLOWED_HOSTS").split(" ")
 
-CELERY_BROKER_URL = "redis://redis:6379"
-CELERY_RESULT_BACKEND = "redis://redis:6379"
+CELERY_BROKER_URL = "redis://127.0.0.1:6379"
+CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379"
 
 CACHES = {
         "default": {
             "BACKEND": "django_redis.cache.RedisCache",
             "LOCATION": "redis://172.32.54.4:6379",
+            "TIMEOUT": 3600,
             "OPTIONS": {
                 "CLIENT_CLASS": "django_redis.client.DefaultClient"
             },
@@ -50,6 +51,7 @@ SITE_ID = 1
 THIRD_PARTY_APPS = [
     "rest_framework",
     'corsheaders',
+    'django_crontab',
 ]
 
 LOCAL_APPS = [
