@@ -17,22 +17,6 @@ services:
     networks:
       vkr_net:
         ipv4_address: 172.32.54.3
-    depends_on:
-      - postgres
-
-  postgres:
-    image: postgres:12.0-alpine
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
-    environment:
-      - POSTGRES_USER=vkr
-      - POSTGRES_PASSWORD=Lbgkjv2023
-      - POSTGRES_DB=vkr
-    ports:
-      - "54329:5432"
-    networks:
-      vkr_net:
-        ipv4_address: 172.32.54.2
 
   nginx:
     restart: always
@@ -78,9 +62,16 @@ services:
         ipv4_address: 172.32.54.4
 
   # RabbitMQ
-  rabbitmq:
-    image: rabbitmq:3.11-management
-    ports: [ "5672", "15672" ]
+  rabbit:
+    restart: always
+    image: "rabbitmq:3-management"
+    environment:
+      RABBITMQ_DEFAULT_USER: "rabbitmq"
+      RABBITMQ_DEFAULT_PASS: "rabbitmq"
+      RABBITMQ_DEFAULT_VHOST: "/"
+    ports:
+      - "15672:15672"
+      - "5672:5672"
     networks:
       vkr_net:
         ipv4_address: 172.32.54.6
@@ -97,6 +88,4 @@ volumes:
   vkr_redis_log:
     external: true
   vkr_redis_dump:
-    external: true
-  postgres_data:
     external: true

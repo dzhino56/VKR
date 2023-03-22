@@ -34,6 +34,7 @@ def caching_traces():
         return_data = np.array(return_data)
         cache.set(filename + '__' + 'CDP' + value, return_data.dumps())
 
+
 def caching_headers():
     filename = BASE_DIR / "templates/CDP_X18_NMO.sgy"
     with segyio.open(filename, ignore_geometry=True) as file:
