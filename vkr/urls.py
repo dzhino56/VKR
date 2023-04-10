@@ -16,6 +16,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from account.views import registration_view, GetCSRFToken, LoginView
+
 urlpatterns = [
-    path('', include('apps.segyviewer.urls')),
+    path('admin/', admin.site.urls),
+    path('api/v1/', include('account.urls')),
+    path('api/v1/', include('apps.segyviewer.urls')),
 ]
