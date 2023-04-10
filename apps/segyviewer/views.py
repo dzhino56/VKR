@@ -13,27 +13,48 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.segyviewer.models import File
-from .serializers import FilesSerializer
+from .serializers import GetFilesSerializer
 
 BASE_DIR = settings.BASE_DIR
 
 
-class FileAPIView(APIView):
+def create_file(file, file_path):
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    with open(file_path, 'wb+') as dst:
+        for chunk in file.chunks():
+            dst.write(chunk)
 
-    @permission_classes([IsAuthenticated])
+
+def create_file_path(user_id, file_name):
+    return BASE_DIR / 'templates' / str(user_id) / file_name
+
+
+class FileAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         user = self.request.user
         files = File.objects.filter(user=user)
-        return Response({'files': FilesSerializer(files, many=True).data})
+        return Response({'files': GetFilesSerializer(files, many=True).data})
 
     def post(self, request, format=None):
         file_obj = request.FILES['file']
-        path = os.path.join(settings.MEDIA_ROOT, file_obj.name)
-        with open(path, 'w') as infile:
-            str_repr = file_obj.read().decode()  # Assuming text based file
-            infile.write(str_repr)
-        full_url = '{request.schema}://{request.get_host()}/{path}'
-        return Response({'file': full_url}, status=201)
+        file_name = file_obj.name
+        user = self.request.user
+        file_path = create_file_path(user.id, file_name)
+        file = File(
+            name=file_name,
+            user=user,
+            user_file_path=file_path,
+            real_file_path=file_path
+        )
+        file.save()
+        create_file(file_obj, file_path)
+
+        return Response({'file': GetFilesSerializer(file, many=False)}, status=201)
+
+    def patch(self, request):
+        return Response()
 
 
 def parse_trace_headers(segyfile):
@@ -50,7 +71,7 @@ def trace_view_set(request):
     end = time.time()
     print("Чтение заголовков заняло: ", end - start)
     start = time.time()
-    traces = get_trace_raw()
+    traces = get_trace_raw(file, request.user.id)
     end = time.time()
     print("Чтение всех трасс заняло: ", end - start)
 
@@ -86,7 +107,7 @@ def headers_view(request):
 
 
 def get_trace_headers(file):
-    filename = BASE_DIR / file.real_file_path
+    filename = BASE_DIR / "templates" / "hello"
     with segyio.open(filename, ignore_geometry=True) as f:
         if filename in cache:
             serialized_headers = cache.get(filename)
@@ -100,8 +121,8 @@ def get_trace_headers(file):
     return trace_headers
 
 
-def get_trace_raw():
-    filename = BASE_DIR / "templates/CDP_X18_NMO.sgy"
+def get_trace_raw(file, user_id):
+    filename = BASE_DIR / user_id / file.real_file_path
     with segyio.open(filename, ignore_geometry=True) as f:
         return f.trace.raw[:]
 
