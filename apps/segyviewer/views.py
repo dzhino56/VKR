@@ -71,7 +71,7 @@ def trace_view_set(request):
     end = time.time()
     print("Чтение заголовков заняло: ", end - start)
     start = time.time()
-    traces = get_trace_raw(file, request.user.id)
+    traces = get_trace_raw(file)
     end = time.time()
     print("Чтение всех трасс заняло: ", end - start)
 
@@ -107,7 +107,7 @@ def headers_view(request):
 
 
 def get_trace_headers(file):
-    filename = BASE_DIR / "templates" / "hello"
+    filename = file.real_file_path
     with segyio.open(filename, ignore_geometry=True) as f:
         if filename in cache:
             serialized_headers = cache.get(filename)
@@ -121,8 +121,8 @@ def get_trace_headers(file):
     return trace_headers
 
 
-def get_trace_raw(file, user_id):
-    filename = BASE_DIR / user_id / file.real_file_path
+def get_trace_raw(file):
+    filename = file.real_file_path
     with segyio.open(filename, ignore_geometry=True) as f:
         return f.trace.raw[:]
 
