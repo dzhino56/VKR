@@ -18,6 +18,20 @@ services:
       vkr_net:
         ipv4_address: 172.32.54.3
 
+  postgres:
+    image: postgres:12.0-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=vkr
+      - POSTGRES_PASSWORD=Lbgkjv2023
+      - POSTGRES_DB=vkr
+    ports:
+      - "54329:5432"
+    networks:
+      vkr_net:
+        ipv4_address: 172.32.54.2
+
   nginx:
     restart: always
     depends_on:
@@ -85,6 +99,8 @@ networks:
 volumes:
   static_volume:
   media_volume:
+  postgres_data:
+    external: true
   vkr_redis_log:
     external: true
   vkr_redis_dump:
