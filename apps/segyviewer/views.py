@@ -51,7 +51,7 @@ class FileAPIView(APIView):
         file.save()
         create_file(file_obj, file_path)
 
-        return Response({'file': GetFilesSerializer(file, many=False)}, status=201)
+        return Response({'file': GetFilesSerializer(file, many=False).data}, status=201)
 
     def patch(self, request):
         return Response()
