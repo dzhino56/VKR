@@ -1,8 +1,9 @@
+import json
 import os
 
 from django.conf import settings
 from django.core.cache import cache
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 import segyio
 import pandas as pd
 import time
@@ -71,7 +72,9 @@ def trace_view_set(request):
     end = time.time()
     print("Чтение заголовков заняло: ", end - start)
     start = time.time()
-    traces = get_trace_raw(file)
+    traces_and_samples = get_trace_raw_and_samples(file)
+    traces = traces_and_samples["traces"]
+    samples = traces_and_samples["samples"]
     end = time.time()
     print("Чтение всех трасс заняло: ", end - start)
 
@@ -97,8 +100,12 @@ def trace_view_set(request):
 
     np_array = np.array(return_data)
     np_array = np_array.transpose()
+    return_dict = {
+        "traces": np_array,
+        "samples": samples
+    }
 
-    return JsonResponse(np_array.tolist(), safe=False)
+    return HttpResponse(json.dumps({k: v.tolist() for k, v in return_dict.items()}))
 
 
 @permission_classes([IsAuthenticated])
@@ -121,10 +128,19 @@ def get_trace_headers(file):
     return trace_headers
 
 
-def get_trace_raw(file):
+def get_trace_raw_and_samples(file):
     filename = file.real_file_path
     with segyio.open(filename, ignore_geometry=True) as f:
-        return f.trace.raw[:]
+        samples = f.samples
+        return {
+            "samples": np.array(
+                [
+                    samples[0],
+                    samples[-1],
+                    (samples[-1] - samples[0]) / (samples.size - 1)
+                ]),
+            "traces": f.trace.raw[:]
+        }
 
 
 def column_unique_values(request):
