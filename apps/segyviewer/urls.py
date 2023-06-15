@@ -9,4 +9,5 @@ urlpatterns = [
     path(r'headers', views.headers_view),
     path(r'values', views.column_unique_values),
     path(r'files', FileAPIView.as_view()),
+    # path(r'shapes', views.trace_view_length),
 ]
